@@ -340,7 +340,21 @@
                 <li><a href="{{ route('home') }}">Trang Chủ</a></li>
                 <li><a href="{{ route('products.index') }}">Sản Phẩm</a></li>
                 <li><a href="{{ route('inspiration.index') }}">Cảm Hứng</a></li>
-                <li><a href="{{ route('admin.dashboard') }}" style="color: var(--color-secondary); font-weight: 600;">Admin</a></li>
+                @auth
+                    <li>
+                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : (Auth::user()->isStaff() ? route('staff.dashboard') : route('home')) }}" style="color: var(--color-secondary); font-weight: 600;">
+                            {{ Auth::user()->name }}
+                        </a>
+                    </li>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                            @csrf
+                            <button type="submit" style="background: none; border: none; color: var(--color-secondary); font-weight: 600; cursor: pointer;">Đăng Xuất</button>
+                        </form>
+                    </li>
+                @else
+                    <li><a href="{{ route('login') }}" style="color: var(--color-secondary); font-weight: 600;">Đăng Nhập</a></li>
+                @endauth
             </ul>
         </nav>
     </header>
