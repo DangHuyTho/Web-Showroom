@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -44,6 +45,13 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 Route::middleware('auth')->group(function () {
     Route::get('/change-password', [AuthController::class, 'showChangePassword'])->name('auth.change-password');
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('auth.update-password');
+});
+
+// Profile Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/password/setup', [ProfileController::class, 'setupPassword'])->name('password.setup');
 });
 
 // Google OAuth Routes

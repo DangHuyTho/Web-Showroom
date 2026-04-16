@@ -374,8 +374,10 @@ class AuthController extends Controller
                     'password' => Hash::make(Str::random(32)), // Random password for Google users
                     'google_id' => $googleUser->getId(),
                     'google_token' => $googleUser->token,
+                    'avatar_url' => $googleUser->getAvatar(), // Save Google avatar
                     'role' => 'user', // Always 'user' for Gmail login per requirement
                     'is_active' => true,
+                    'password_set' => false, // User must set password on first login
                 ]);
 
                 // Create cart for new user
@@ -386,6 +388,7 @@ class AuthController extends Controller
         // Update google token on each login
         $user->update([
             'google_token' => $googleUser->token,
+            'avatar_url' => $googleUser->getAvatar(), // Update avatar on each login
         ]);
 
         // Verify user is active

@@ -245,6 +245,101 @@
             color: white;
         }
 
+        /* User Avatar Dropdown */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-avatar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: var(--color-secondary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar-btn:hover {
+            opacity: 0.8;
+        }
+
+        .avatar-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--color-secondary);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            min-width: 220px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            z-index: 1001;
+            margin-top: 8px;
+        }
+
+        .user-dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu a,
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            color: var(--color-text);
+            text-decoration: none;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .dropdown-menu a:first-child,
+        .dropdown-menu button:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .dropdown-menu a:last-child,
+        .dropdown-menu button:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .dropdown-menu a:hover,
+        .dropdown-menu button:hover {
+            background: #f5f5f5;
+            color: var(--color-secondary);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--color-border);
+            margin: 4px 0;
+        }
+
+        .dropdown-menu button {
+            color: #dc2626;
+        }
+
+        .dropdown-menu button:hover {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
         /* Footer */
         footer {
             background: var(--color-primary);
@@ -341,16 +436,36 @@
                 <li><a href="{{ route('products.index') }}">Sản Phẩm</a></li>
                 <li><a href="{{ route('inspiration.index') }}">Cảm Hứng</a></li>
                 @auth
-                    <li>
-                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : (Auth::user()->isStaff() ? route('staff.dashboard') : route('home')) }}" style="color: var(--color-secondary); font-weight: 600;">
-                            {{ Auth::user()->name }}
-                        </a>
-                    </li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                            @csrf
-                            <button type="submit" style="background: none; border: none; color: var(--color-secondary); font-weight: 600; cursor: pointer;">Đăng Xuất</button>
-                        </form>
+                    <li class="user-dropdown">
+                        <button class="user-avatar-btn">
+                            @php
+                                $avatar = Auth::user()->avatar_url ?: 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=d4af37&color=1a1a1a';
+                            @endphp
+                            <img src="{{ $avatar }}" alt="{{ Auth::user()->name }}" class="avatar-img">
+                            <span>{{ Auth::user()->name }}</span>
+                        </button>
+                        
+                        <div class="dropdown-menu">
+                            <a href="{{ route('profile.edit') }}" style="display: flex; align-items: center; gap: 8px;">
+                                <span>👤</span> Quản lý thông tin cá nhân
+                            </a>
+                            <a href="{{ route('cart.index') }}" style="display: flex; align-items: center; gap: 8px;">
+                                <span>🛒</span> Giỏ hàng
+                            </a>
+                            <a href="{{ route('orders.index') }}" style="display: flex; align-items: center; gap: 8px;">
+                                <span>📦</span> Đơn hàng
+                            </a>
+                            <a href="{{ route('auth.change-password') }}" style="display: flex; align-items: center; gap: 8px;">
+                                <span>🔐</span> Đổi mật khẩu
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <form method="POST" action="{{ route('logout') }}" style="display: block;">
+                                @csrf
+                                <button type="submit" style="display: flex; align-items: center; gap: 8px;">
+                                    <span>🚪</span> Đăng Xuất
+                                </button>
+                            </form>
+                        </div>
                     </li>
                 @else
                     <li><a href="{{ route('login') }}" style="color: var(--color-secondary); font-weight: 600;">Đăng Nhập</a></li>
@@ -433,5 +548,8 @@
             <span style="color: rgba(255, 255, 255, 0.4); font-size: 1rem; margin-left: 8px; flex-shrink: 0;">›</span>
         </a>
     </div>
+
+    <!-- Password Setup Modal -->
+    @include('components.password-setup-modal')
 </body>
 </html>

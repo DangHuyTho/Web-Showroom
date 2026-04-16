@@ -25,7 +25,9 @@ class User extends Authenticatable
         'role',
         'google_id',
         'google_token',
+        'avatar_url',
         'is_active',
+        'password_set',
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'password_set' => 'boolean',
         ];
     }
 
