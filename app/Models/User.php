@@ -22,6 +22,10 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'role',
+        'google_id',
+        'google_token',
+        'is_active',
     ];
 
     /**
@@ -44,6 +48,47 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is staff
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
+
+    /**
+     * Check if user is regular user
+     */
+    public function isRegularUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Get user orders
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get user cart
+     */
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
     }
 }

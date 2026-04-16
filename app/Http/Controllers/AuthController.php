@@ -8,10 +8,24 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\Cart;
 use Illuminate\Support\Facades\DB;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    /**
+     * Determine user role based on username pattern
+     */
+    private function determineRoleByUsername($username)
+    {
+        if (str_ends_with($username, '.admin')) {
+            return 'admin';
+        } elseif (str_ends_with($username, '.staff')) {
+            return 'staff';
+        }
+        return 'user';
+    }
     /**
      * Show login form
      */
@@ -24,6 +38,62 @@ class AuthController extends Controller
     }
 
     /**
+     * Show register form
+     */
+    public function showRegister()
+    {
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return view('auth.register');
+    }
+
+    /**
+     * Handle registration
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|unique:users,username|max:255|min:3',
+            'email' => 'required|string|email|unique:users,email|max:255',
+            'password' => 'required|string|min:6|confirmed',
+        ], [
+            'name.required' => 'Vui lòng nhập tên',
+            'username.required' => 'Vui lòng nhập tên đăng nhập',
+            'username.unique' => 'Tên đăng nhập này đã được sử dụng',
+            'username.min' => 'Tên đăng nhập phải có ít nhất 3 ký tự',
+            'email.required' => 'Vui lòng nhập email',
+            'email.email' => 'Email không hợp lệ',
+            'email.unique' => 'Email này đã được đăng ký',
+            'password.required' => 'Vui lòng nhập mật khẩu',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'password.confirmed' => 'Xác nhận mật khẩu không trùng khớp',
+        ]);
+
+        // Determine role based on username pattern
+        $role = $this->determineRoleByUsername($validated['username']);
+
+        // Create user
+        $user = User::create([
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $role,
+            'is_active' => true,
+        ]);
+
+        // Create cart for user
+        Cart::create(['user_id' => $user->id]);
+
+        // Auto-login after registration
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('home')->with('success', 'Đăng ký thành công! Chào mừng bạn!');
+    }
+    /**
      * Handle login
      */
     public function login(Request $request)
@@ -35,7 +105,23 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập thành công!');
+            
+            // Get user and check username pattern to validate role
+            $user = Auth::user();
+            $expectedRole = $this->determineRoleByUsername($user->username);
+            
+            // Update role if it doesn't match username pattern
+            if ($user->role !== $expectedRole) {
+                $user->update(['role' => $expectedRole]);
+            }
+            
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập thành công!');
+            } elseif ($user->isStaff()) {
+                return redirect()->route('staff.dashboard')->with('success', 'Đăng nhập thành công!');
+            } else {
+                return redirect()->route('home')->with('success', 'Đăng nhập thành công!');
+            }
         }
 
         return back()->with('error', 'Tên đăng nhập hoặc mật khẩu không chính xác')->onlyInput('username');
@@ -232,5 +318,84 @@ class AuthController extends Controller
         DB::table('password_resets')->where('username', $validated['username'])->delete();
 
         return redirect()->route('login')->with('success', 'Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập.');
+    }
+
+    /**
+     * Redirect to Google OAuth
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    /**
+     * Handle Google OAuth callback
+     */
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Không thể kết nối với Google. Vui lòng thử lại.');
+        }
+
+        // Check if user already exists
+        $user = User::where('google_id', $googleUser->getId())->first();
+
+        if (!$user) {
+            // Check if email already registered
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if ($user) {
+                // Update existing user with Google ID and token
+                $user->update([
+                    'google_id' => $googleUser->getId(),
+                    'google_token' => $googleUser->token,
+                ]);
+            } else {
+                // Create new user from Google data (always as regular user)
+                $name = $googleUser->getName();
+                
+                // Generate unique username from Google ID and email
+                $baseUsername = strtolower(explode('@', $googleUser->getEmail())[0]);
+                $username = $baseUsername;
+                $counter = 1;
+                
+                // Ensure username is unique
+                while (User::where('username', $username)->exists()) {
+                    $username = $baseUsername . $counter;
+                    $counter++;
+                }
+
+                $user = User::create([
+                    'name' => $name,
+                    'username' => $username,
+                    'email' => $googleUser->getEmail(),
+                    'password' => Hash::make(Str::random(32)), // Random password for Google users
+                    'google_id' => $googleUser->getId(),
+                    'google_token' => $googleUser->token,
+                    'role' => 'user', // Always 'user' for Gmail login per requirement
+                    'is_active' => true,
+                ]);
+
+                // Create cart for new user
+                Cart::create(['user_id' => $user->id]);
+            }
+        }
+
+        // Update google token on each login
+        $user->update([
+            'google_token' => $googleUser->token,
+        ]);
+
+        // Verify user is active
+        if (!$user->is_active) {
+            return redirect()->route('login')->with('error', 'Tài khoản của bạn đã bị vô hiệu hóa.');
+        }
+
+        // Login the user
+        Auth::login($user, true);
+
+        return redirect()->route('home')->with('success', 'Đăng nhập bằng Google thành công!');
     }
 }

@@ -28,6 +28,8 @@ Route::get('/inspiration/{slug}', [InspirationController::class, 'show'])->name(
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Forgot Password Routes
@@ -44,8 +46,52 @@ Route::middleware('auth')->group(function () {
     Route::post('/change-password', [AuthController::class, 'changePassword'])->name('auth.update-password');
 });
 
+// Google OAuth Routes
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+// Cart Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add/{id}', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+    Route::patch('/cart/update/{itemId}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/remove/{itemId}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/clear', [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/count', [\App\Http\Controllers\CartController::class, 'count'])->name('cart.count');
+});
+
+// Order Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/orders', [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{id}', [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
+    Route::get('/checkout', [\App\Http\Controllers\OrderController::class, 'checkout'])->name('checkout');
+    Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
+    Route::get('/payment/{paymentId}', [\App\Http\Controllers\OrderController::class, 'payment'])->name('orders.payment');
+    Route::post('/payment/{paymentId}/process', [\App\Http\Controllers\OrderController::class, 'processPayment'])->name('orders.processPayment');
+    Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
+});
+
+// Staff Routes
+Route::prefix('staff')->name('staff.')->middleware(['auth', 'is_staff'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard.alt');
+    
+    // Orders management
+    Route::get('/orders', [\App\Http\Controllers\Staff\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{id}', [\App\Http\Controllers\Staff\OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{id}/confirm', [\App\Http\Controllers\Staff\OrderController::class, 'confirm'])->name('orders.confirm');
+    Route::post('/orders/{id}/process', [\App\Http\Controllers\Staff\OrderController::class, 'process'])->name('orders.process');
+    Route::post('/orders/{id}/ship', [\App\Http\Controllers\Staff\OrderController::class, 'ship'])->name('orders.ship');
+    Route::post('/orders/{id}/deliver', [\App\Http\Controllers\Staff\OrderController::class, 'deliver'])->name('orders.deliver');
+    Route::post('/orders/{id}/reject', [\App\Http\Controllers\Staff\OrderController::class, 'reject'])->name('orders.reject');
+    
+    // Inventory management
+    Route::get('/inventory', [\App\Http\Controllers\Staff\OrderController::class, 'inventory'])->name('inventory.index');
+    Route::get('/inventory/export', [\App\Http\Controllers\Staff\OrderController::class, 'exportInventory'])->name('inventory.export');
+});
+
 // Admin Routes
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.alt');
     
