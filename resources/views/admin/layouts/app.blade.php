@@ -86,7 +86,7 @@
                         Hiệu suất Staff
                     </a>
 
-                    <a href="{{ route('admin.settings.content') }}" class="flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg {{ request()->routeIs('admin.settings.content') ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-100' }}">
+                    <a href="{{ route('admin.inspiration-posts.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg {{ request()->routeIs('admin.inspiration-posts.*') ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-100' }}">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2H4a2 2 0 01-2-2V4zm3 1h6v2H7V5zm0 4h6v2H7V9z"></path>
                         </svg>

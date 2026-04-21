@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\StaffPerformanceController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\InspirationPostController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -191,15 +192,31 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
     
     // Settings
     Route::get('/settings/shipping', [SettingsController::class, 'shipping'])->name('settings.shipping');
-    Route::post('/settings/shipping', [SettingsController::class, 'updateShipping'])->name('settings.updateShipping');
+    Route::put('/settings/shipping', [SettingsController::class, 'updateShipping'])->name('settings.update-shipping');
     
     Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment');
-    Route::post('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.updatePayment');
+    Route::put('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.update-payment');
     
     Route::get('/settings/general', [SettingsController::class, 'general'])->name('settings.general');
-    Route::post('/settings/general', [SettingsController::class, 'updateGeneral'])->name('settings.updateGeneral');
+    Route::put('/settings/general', [SettingsController::class, 'updateGeneral'])->name('settings.update-general');
     
     Route::get('/settings/content', [SettingsController::class, 'content'])->name('settings.content');
-    Route::get('/settings/content/{slug}/edit', [SettingsController::class, 'editContent'])->name('settings.editContent');
-    Route::post('/settings/content/{slug}', [SettingsController::class, 'updateContent'])->name('settings.updateContent');
+    Route::get('/settings/content/{slug}/edit', [SettingsController::class, 'editContent'])->name('settings.edit-content');
+    Route::put('/settings/content/{slug}', [SettingsController::class, 'updateContent'])->name('settings.update-content');
+    
+    // Inspiration Posts
+    Route::resource('inspiration-posts', InspirationPostController::class, [
+        'parameters' => ['inspiration-post' => 'post'],
+        'names' => [
+            'index' => 'inspiration-posts.index',
+            'create' => 'inspiration-posts.create',
+            'store' => 'inspiration-posts.store',
+            'show' => 'inspiration-posts.show',
+            'edit' => 'inspiration-posts.edit',
+            'update' => 'inspiration-posts.update',
+            'destroy' => 'inspiration-posts.destroy',
+        ]
+    ]);
+    Route::patch('inspiration-posts/{post}/toggle-active', [InspirationPostController::class, 'toggleActive'])->name('inspiration-posts.toggleActive');
+    Route::patch('inspiration-posts/{post}/toggle-featured', [InspirationPostController::class, 'toggleFeatured'])->name('inspiration-posts.toggleFeatured');
 });

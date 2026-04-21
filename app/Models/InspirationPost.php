@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class InspirationPost extends Model
 {
+    protected $table = 'inspiration_posts';
+    protected $primaryKey = 'id';
+    protected $keyType = 'int';
+
     protected $fillable = [
         'title',
         'slug',
