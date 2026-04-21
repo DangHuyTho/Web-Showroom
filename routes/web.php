@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{id}', [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
     Route::get('/checkout', [\App\Http\Controllers\OrderController::class, 'checkout'])->name('checkout');
     Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
+    Route::post('/products/{productId}/buy-direct', [\App\Http\Controllers\OrderController::class, 'storeDirect'])->name('orders.storeDirect');
     Route::get('/payment/{paymentId}', [\App\Http\Controllers\OrderController::class, 'payment'])->name('orders.payment');
     Route::post('/payment/{paymentId}/process', [\App\Http\Controllers\OrderController::class, 'processPayment'])->name('orders.processPayment');
     Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
@@ -93,13 +94,18 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'is_staff'])->group(
     Route::get('/orders/{id}', [\App\Http\Controllers\Staff\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{id}/confirm', [\App\Http\Controllers\Staff\OrderController::class, 'confirm'])->name('orders.confirm');
     Route::post('/orders/{id}/process', [\App\Http\Controllers\Staff\OrderController::class, 'process'])->name('orders.process');
-    Route::post('/orders/{id}/ship', [\App\Http\Controllers\Staff\OrderController::class, 'ship'])->name('orders.ship');
+    Route::get('/orders/{id}/print-packing-slip', [\App\Http\Controllers\Staff\OrderController::class, 'printPackingSlip'])->name('orders.print-packing-slip');
+    Route::post('/orders/{id}/pack', [\App\Http\Controllers\Staff\OrderController::class, 'pack'])->name('orders.pack');
+    Route::post('/orders/{id}/handover', [\App\Http\Controllers\Staff\OrderController::class, 'handover'])->name('orders.handover');
     Route::post('/orders/{id}/deliver', [\App\Http\Controllers\Staff\OrderController::class, 'deliver'])->name('orders.deliver');
-    Route::post('/orders/{id}/reject', [\App\Http\Controllers\Staff\OrderController::class, 'reject'])->name('orders.reject');
+    Route::post('/orders/{id}/cancel', [\App\Http\Controllers\Staff\OrderController::class, 'cancel'])->name('orders.cancel');
     
     // Inventory management
-    Route::get('/inventory', [\App\Http\Controllers\Staff\OrderController::class, 'inventory'])->name('inventory.index');
-    Route::get('/inventory/export', [\App\Http\Controllers\Staff\OrderController::class, 'exportInventory'])->name('inventory.export');
+    Route::get('/inventory', [\App\Http\Controllers\Staff\InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/{id}/edit', [\App\Http\Controllers\Staff\InventoryController::class, 'edit'])->name('inventory.edit');
+    Route::post('/inventory/{id}/update', [\App\Http\Controllers\Staff\InventoryController::class, 'update'])->name('inventory.update');
+    Route::post('/inventory/{id}/adjust', [\App\Http\Controllers\Staff\InventoryController::class, 'adjust'])->name('inventory.adjust');
+    Route::get('/inventory/report', [\App\Http\Controllers\Staff\InventoryController::class, 'report'])->name('inventory.report');
 });
 
 // Admin Routes

@@ -17,6 +17,9 @@ class Product extends Model
         'description',
         'sku',
         'price',
+        'quantity',
+        'min_stock',
+        'shelf_location',
         'unit',
         'material',
         'size',
@@ -92,5 +95,13 @@ class Product extends Model
     public function hasSpace($space): bool
     {
         return in_array($space, $this->spaces());
+    }
+
+    /**
+     * Get inventory logs for this product
+     */
+    public function inventoryLogs(): HasMany
+    {
+        return $this->hasMany(InventoryLog::class)->latest();
     }
 }

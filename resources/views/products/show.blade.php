@@ -465,25 +465,28 @@
             const action = document.getElementById('purchaseModal').dataset.action;
             
             @auth
-                // Trigger flying animation
-                createFlyingAnimation();
-                
-                // Delay form submission to show animation
-                setTimeout(() => {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route("cart.add", $product->id) }}';
-                    form.innerHTML = `
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="quantity" value="${quantity}">
-                        ${action === 'purchase-now' ? '<input type="hidden" name="redirect" value="checkout">' : ''}
-                    `;
-                    document.body.appendChild(form);
-                    form.submit();
-                }, 600);
-                
-                // Close modal
-                closePurchaseModal();
+                if (action === 'purchase-now') {
+                    // For purchase now: show checkout modal
+                    closePurchaseModal();
+                    showCheckoutModal(quantity);
+                } else {
+                    // For add to cart: proceed as usual with flying animation
+                    createFlyingAnimation();
+                    
+                    setTimeout(() => {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '{{ route("cart.add", $product->id) }}';
+                        form.innerHTML = `
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="quantity" value="${quantity}">
+                        `;
+                        document.body.appendChild(form);
+                        form.submit();
+                    }, 600);
+                    
+                    closePurchaseModal();
+                }
             @endauth
         }
 
@@ -516,17 +519,119 @@
             }, 800);
         }
 
+        // Checkout Modal Functions
+        function showCheckoutModal(quantity) {
+            document.getElementById('checkoutModal').style.display = 'flex';
+            document.getElementById('checkoutQuantity').value = quantity;
+            document.getElementById('checkoutQuantityDisplay').value = quantity;
+            updateCheckoutSummary(quantity);
+        }
+
+        function updateCheckoutSummary(quantity) {
+            const unitPrice = productPrice;
+            let totalAmount = 0;
+
+            if (isToto) {
+                totalAmount = quantity * unitPrice;
+            } else {
+                if (tileSizeM2 > 0) {
+                    const actualArea = quantity * tileSizeM2;
+                    totalAmount = Math.round(actualArea * unitPrice);
+                } else {
+                    totalAmount = quantity * unitPrice;
+                }
+            }
+
+            document.getElementById('checkoutSummaryQuantity').textContent = isToto ? quantity + ' sản phẩm' : quantity + ' viên';
+            document.getElementById('checkoutSummarySubtotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount).replace('₫', 'đ');
+            document.getElementById('checkoutSummaryTotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount).replace('₫', 'đ');
+        }
+
+        function updateCheckoutQuantity() {
+            const quantity = parseFloat(document.getElementById('checkoutQuantityDisplay').value) || 1;
+            document.getElementById('checkoutQuantity').value = quantity;
+            updateCheckoutSummary(quantity);
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+
+        function submitCheckoutForm() {
+            const form = document.getElementById('checkoutForm');
+            const quantity = parseFloat(document.getElementById('checkoutQuantityDisplay').value) || 1;
+            const deliveryAddress = document.getElementById('checkoutAddress').value;
+            const phone = document.getElementById('checkoutPhone').value;
+            const notes = document.getElementById('checkoutNotes').value;
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+
+            // Validation
+            if (!deliveryAddress) {
+                alert('Vui lòng nhập địa chỉ giao hàng');
+                return;
+            }
+            if (!phone) {
+                alert('Vui lòng nhập số điện thoại');
+                return;
+            }
+            if (!paymentMethod) {
+                alert('Vui lòng chọn phương thức thanh toán');
+                return;
+            }
+
+            // Submit form via AJAX
+            const formData = new FormData();
+            formData.append('quantity', quantity);
+            formData.append('delivery_address', deliveryAddress);
+            formData.append('phone', phone);
+            formData.append('notes', notes);
+            formData.append('payment_method', paymentMethod);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            fetch('{{ route("orders.storeDirect", $product->id) }}', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.error || 'Có lỗi xảy ra');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi khi xử lý đơn hàng');
+            });
+        }
+
         // Đóng modal khi bấm vào overlay
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('purchaseModal');
+            const checkoutModal = document.getElementById('checkoutModal');
             if (e.target === modal) {
                 closePurchaseModal();
+            }
+            if (e.target === checkoutModal) {
+                closeCheckoutModal();
             }
         });
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             calculateEstimate();
+            
+            // Add event listener for checkout quantity input if modal exists
+            const checkoutQuantityInput = document.getElementById('checkoutQuantityDisplay');
+            if (checkoutQuantityInput) {
+                checkoutQuantityInput.addEventListener('change', function() {
+                    updateCheckoutQuantity();
+                });
+                checkoutQuantityInput.addEventListener('input', function() {
+                    updateCheckoutQuantity();
+                });
+            }
         });
     </script>
 
@@ -603,6 +708,159 @@
                 opacity: 0;
             }
         }
+
+        /* Responsive layout for checkout modal */
+        @media (max-width: 768px) {
+            #checkoutModal > div {
+                grid-template-columns: 1fr !important;
+            }
+            
+            #checkoutModal > div > div:nth-child(2) {
+                border-left: none !important;
+                border-top: 1px solid #e5e7eb;
+            }
+        }
     </style>
+
+    <!-- Checkout Modal (for direct purchase) -->
+    <div id="checkoutModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: var(--spacing-md);">
+        <div style="background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; display: grid; grid-template-columns: 1fr 350px; gap: 0;">
+            <!-- Left: Form -->
+            <div>
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, var(--color-primary) 0%, #0d6bb5 100%); color: white; padding: var(--spacing-md); display: flex; justify-content: space-between; align-items: center; grid-column: 1;">
+                    <h2 style="margin: 0; font-size: 1.3rem;">💳 Thanh Toán</h2>
+                    <button onclick="closeCheckoutModal()" style="background: rgba(255,255,255,0.3); border: none; color: white; font-size: 1.5rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.5)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Form Content -->
+                <form id="checkoutForm" style="padding: var(--spacing-lg);">
+                    <input type="hidden" id="checkoutQuantity" value="1">
+
+                    <!-- Quantity -->
+                    <div style="margin-bottom: var(--spacing-lg); background: #f3f4f6; padding: var(--spacing-md); border-radius: 6px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--color-primary);">
+                            @if($product->brand && $product->brand->slug === 'toto')
+                                Số lượng sản phẩm
+                            @else
+                                Số viên gạch
+                            @endif
+                        </label>
+                        <input type="number" id="checkoutQuantityDisplay" min="1" value="1" step="1" style="width: 100%; padding: 0.75rem; border: 2px solid var(--color-primary); border-radius: 6px; font-size: 1rem; font-weight: 600; color: var(--color-primary);" onchange="updateCheckoutQuantity()" oninput="updateCheckoutQuantity()">
+                    </div>
+
+                    <!-- Delivery Address -->
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--color-text);">Địa chỉ giao hàng</label>
+                        <textarea id="checkoutAddress" placeholder="Nhập địa chỉ giao hàng" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 4px; font-family: inherit; resize: vertical;" rows="3"></textarea>
+                    </div>
+
+                    <!-- Phone -->
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--color-text);">Số điện thoại</label>
+                        <input type="text" id="checkoutPhone" placeholder="Ví dụ: 0912345678" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+
+                    <!-- Notes -->
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <label style="display: block; font-weight: 600; margin-bottom: var(--spacing-xs); color: var(--color-text);">Ghi chú (tùy chọn)</label>
+                        <textarea id="checkoutNotes" placeholder="Thêm ghi chú cho đơn hàng" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 4px; font-family: inherit; resize: vertical;" rows="2"></textarea>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <h3 style="font-weight: 600; margin-bottom: var(--spacing-md); color: var(--color-text);">Phương thức thanh toán</h3>
+                        
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--color-secondary)'; this.style.backgroundColor='#fffbf0'" onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'">
+                                <input type="radio" name="payment_method" value="direct_payment" checked style="margin-right: var(--spacing-sm);">
+                                <div>
+                                    <strong style="display: block; color: var(--color-text);">Thanh toán trực tiếp</strong>
+                                    <small style="color: #6b7280; display: block;">Thanh toán khi nhận hàng hoặc chuyển khoản</small>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--color-secondary)'; this.style.backgroundColor='#fffbf0'" onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'">
+                                <input type="radio" name="payment_method" value="banking" style="margin-right: var(--spacing-sm);">
+                                <div>
+                                    <strong style="display: block; color: var(--color-text);">Chuyển khoản ngân hàng</strong>
+                                    <small style="color: #6b7280; display: block;">Chuyển khoản trực tiếp đến tài khoản ngân hàng</small>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--color-secondary)'; this.style.backgroundColor='#fffbf0'" onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'">
+                                <input type="radio" name="payment_method" value="credit_card" style="margin-right: var(--spacing-sm);">
+                                <div>
+                                    <strong style="display: block; color: var(--color-text);">Thẻ tín dụng</strong>
+                                    <small style="color: #6b7280; display: block;">Visa, Mastercard, hoặc các thẻ khác</small>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <label style="display: flex; align-items: center; padding: 12px; border: 2px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--color-secondary)'; this.style.backgroundColor='#fffbf0'" onmouseout="this.style.borderColor='#e5e7eb'; this.style.backgroundColor='transparent'">
+                                <input type="radio" name="payment_method" value="e_wallet" style="margin-right: var(--spacing-sm);">
+                                <div>
+                                    <strong style="display: block; color: var(--color-text);">Ví điện tử</strong>
+                                    <small style="color: #6b7280; display: block;">Momo, ZaloPay, hoặc ví khác</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                        <button type="button" onclick="closeCheckoutModal()" style="padding: 0.75rem 1.5rem; background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            ✕ Hủy
+                        </button>
+                        <button type="button" onclick="submitCheckoutForm()" style="padding: 0.75rem 1.5rem; background: var(--color-secondary); color: var(--color-primary); border: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            ✓ Xác Nhận
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right: Summary -->
+            <div style="background: white; padding: var(--spacing-lg); border-left: 1px solid #e5e7eb;">
+                <h3 style="font-weight: 600; margin-bottom: var(--spacing-md); border-bottom: 1px solid #e5e7eb; padding-bottom: var(--spacing-md);">Đơn hàng</h3>
+                
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                        <span style="color: #6b7280; font-size: 0.9rem;">Sản phẩm:</span>
+                        <strong style="font-size: 0.9rem;">{{ $product->name }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                        <span style="color: #6b7280; font-size: 0.9rem;">Thương hiệu:</span>
+                        <strong style="font-size: 0.9rem;">{{ $product->brand->name ?? 'N/A' }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                        <span style="color: #6b7280; font-size: 0.9rem;">Số lượng:</span>
+                        <strong id="checkoutSummaryQuantity" style="font-size: 0.9rem;">0</strong>
+                    </div>
+                </div>
+
+                <div style="border-top: 2px solid #e5e7eb; margin-top: var(--spacing-md); padding-top: var(--spacing-md);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                        <span style="color: #6b7280;">Hàng:</span>
+                        <span id="checkoutSummarySubtotal">0 đ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
+                        <span style="color: #6b7280;">Vận chuyển:</span>
+                        <span>Miễn phí</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem;">
+                        <span>Tổng:</span>
+                        <span style="color: var(--color-secondary);" id="checkoutSummaryTotal">0 đ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 @endsection

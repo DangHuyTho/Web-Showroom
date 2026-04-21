@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('staff.layouts.app')
 
 @section('title', 'Chi tiết đơn hàng #' . $order->id)
+@section('page-title', 'Chi Tiết Đơn Hàng #' . $order->id)
 
 @section('content')
 <div style="padding: var(--spacing-lg);">
@@ -102,6 +103,7 @@
                 <h3 style="font-weight: 600; margin-bottom: var(--spacing-md);">Hành động</h3>
                 <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
                     @if ($order->status === 'pending')
+                        <!-- Pending Actions: Confirm or Cancel -->
                         <form action="{{ route('staff.orders.confirm', $order->id) }}" method="POST" style="display: inline;">
                             @csrf
                             <button type="submit" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
@@ -109,42 +111,51 @@
                             </button>
                         </form>
 
-                        <form action="{{ route('staff.orders.reject', $order->id) }}" method="POST" style="display: inline;">
-                            @csrf
-                            <input type="hidden" name="reason" value="Từ chối nhân viên">
-                            <button type="submit" style="background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onclick="return confirm('Bạn có chắc chắn?');" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                ✕ Từ chối
-                            </button>
-                        </form>
+                        <button onclick="showCancelModal()" style="background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            ✕ Hủy đơn
+                        </button>
                     @endif
 
                     @if ($order->status === 'confirmed')
+                        <!-- Confirmed Actions: Process or Cancel -->
                         <form action="{{ route('staff.orders.process', $order->id) }}" method="POST" style="display: inline;">
                             @csrf
                             <button type="submit" style="background: #8b5cf6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                📦 Bắt đầu xử lý
+                                📦 Bắt đầu chuẩn bị
                             </button>
                         </form>
 
-                        <form action="{{ route('staff.orders.reject', $order->id) }}" method="POST" style="display: inline;">
+                        <button onclick="showCancelModal()" style="background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            ✕ Hủy đơn
+                        </button>
+                    @endif
+
+                    @if ($order->status === 'processing')
+                        <!-- Processing Actions: Print Packing Slip, Mark as Packed -->
+                        <a href="{{ route('staff.orders.print-packing-slip', $order->id) }}" target="_blank" style="background: #06b6d4; color: white; padding: 10px 20px; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: inline-block;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            🖨️ In vận đơn
+                        </a>
+
+                        <form action="{{ route('staff.orders.pack', $order->id) }}" method="POST" style="display: inline;">
                             @csrf
-                            <input type="hidden" name="reason" value="Từ chối nhân viên">
-                            <button type="submit" style="background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onclick="return confirm('Bạn có chắc chắn?');" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                ✕ Từ chối
+                            <button type="submit" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                ✓ Đã đóng gói
                             </button>
                         </form>
                     @endif
 
-                    @if ($order->status === 'processing')
-                        <form action="{{ route('staff.orders.ship', $order->id) }}" method="POST" style="display: inline;">
+                    @if ($order->status === 'packed')
+                        <!-- Packed Actions: Handover to Shipper -->
+                        <form action="{{ route('staff.orders.handover', $order->id) }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" style="background: #06b6d4; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-                                🚚 Gửi hàng
+                            <button type="submit" style="background: #8b5cf6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                🚚 Bàn giao vận chuyển
                             </button>
                         </form>
                     @endif
 
                     @if ($order->status === 'shipped')
+                        <!-- Shipped Actions: Mark as Delivered -->
                         <form action="{{ route('staff.orders.deliver', $order->id) }}" method="POST" style="display: inline;">
                             @csrf
                             <button type="submit" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
@@ -155,6 +166,44 @@
                 </div>
             </div>
         @endif
+
+        <!-- Cancel Modal -->
+        <div id="cancelModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; flex-direction: column;">
+            <div style="background: white; border-radius: 8px; padding: var(--spacing-lg); max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <h3 style="margin-top: 0; margin-bottom: var(--spacing-md); color: #374151;">Hủy đơn hàng</h3>
+                <form action="{{ route('staff.orders.cancel', $order->id) }}" method="POST">
+                    @csrf
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Lý do hủy:</label>
+                        <textarea name="reason" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; font-family: inherit;" rows="3" placeholder="Nhập lý do hủy đơn hàng..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: var(--spacing-md);">
+                        <button type="submit" style="flex: 1; background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            Xác nhận hủy
+                        </button>
+                        <button type="button" onclick="closeCancelModal()" style="flex: 1; background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            Đóng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function showCancelModal() {
+                document.getElementById('cancelModal').style.display = 'flex';
+            }
+
+            function closeCancelModal() {
+                document.getElementById('cancelModal').style.display = 'none';
+            }
+
+            document.getElementById('cancelModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCancelModal();
+                }
+            });
+        </script>
 
         <!-- Back Button -->
         <a href="{{ route('staff.orders.index') }}" style="display: inline-block; background: var(--color-primary); color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.background='var(--color-primary-dark)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--color-primary)'; this.style.transform='translateY(0)'">

@@ -1,6 +1,7 @@
-@extends('layouts.app')
+@extends('staff.layouts.app')
 
 @section('title', 'Quản lý đơn hàng')
+@section('page-title', 'Quản Lý Đơn Hàng')
 
 @section('content')
 <div style="padding: var(--spacing-lg);">

@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
 use App\Models\Payment;
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -141,6 +142,97 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Có lỗi khi tạo đơn hàng. Vui lòng thử lại');
+        }
+    }
+
+    /**
+     * Store order directly from product page (buy now)
+     */
+    public function storeDirect(Request $request, $productId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Vui lòng đăng nhập'], 401);
+        }
+
+        $product = Product::findOrFail($productId);
+
+        $validated = $request->validate([
+            'quantity' => 'required|numeric|min:1',
+            'delivery_address' => 'required|string',
+            'phone' => 'required|string|regex:/^[0-9\-\+\(\)\s]+$/',
+            'notes' => 'nullable|string',
+            'payment_method' => 'required|in:direct_payment,banking,credit_card,e_wallet',
+        ], [
+            'quantity.required' => 'Vui lòng nhập số lượng',
+            'quantity.numeric' => 'Số lượng phải là số',
+            'quantity.min' => 'Số lượng phải lớn hơn 0',
+            'delivery_address.required' => 'Vui lòng nhập địa chỉ giao hàng',
+            'phone.required' => 'Vui lòng nhập số điện thoại',
+            'phone.regex' => 'Số điện thoại không hợp lệ',
+            'payment_method.required' => 'Vui lòng chọn phương thức thanh toán',
+        ]);
+
+        $quantity = intval($validated['quantity']);
+        $unitPrice = $product->price;
+
+        // Calculate unit price based on product type (similar to CartController)
+        if ($product->size && $product->brand && $product->brand->slug !== 'toto') {
+            // Parse size format: "60×90" or "60x90" to get dimensions in cm
+            preg_match('/(\d+)\s*[×x]\s*(\d+)/', $product->size, $matches);
+            if ($matches) {
+                $width = intval($matches[1]) / 100; // Convert cm to m
+                $height = intval($matches[2]) / 100;
+                $tileSizeM2 = $width * $height;
+                // unit_price = giá/viên = diện tích 1 viên × đơn giá/m²
+                $unitPrice = intval($tileSizeM2 * $product->price);
+            }
+        }
+
+        // Calculate total
+        $total = $unitPrice * $quantity;
+
+        try {
+            // Create order
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'total_amount' => $total,
+                'status' => 'pending',
+                'delivery_address' => $validated['delivery_address'],
+                'phone' => $validated['phone'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Create order item
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'subtotal' => $total,
+            ]);
+
+            // Create payment
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'transaction_id' => 'TXN-' . Str::random(12),
+                'amount' => $total,
+                'payment_method' => $validated['payment_method'],
+                'status' => 'pending',
+            ]);
+
+            $order->update(['payment_id' => $payment->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đặt hàng thành công!',
+                'redirect' => route('orders.payment', $payment->id)
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Có lỗi khi tạo đơn hàng. Vui lòng thử lại',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
