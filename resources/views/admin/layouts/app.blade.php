@@ -71,21 +71,107 @@
                         Sản phẩm
                     </a>
                 </div>
+
+                <!-- NEW: Nhân sự -->
+                <div class="mt-8">
+                    <h3 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Nhân sự</h3>
+                    
+                    <a href="{{ route('admin.users.index') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.users.*') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.5 1.5H5.75A2.25 2.25 0 003.5 3.75v12.5A2.25 2.25 0 005.75 18.5h8.5a2.25 2.25 0 002.25-2.25V9"></path>
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM6.5 11a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"></path>
+                        </svg>
+                        Quản lý Tài Khoản
+                    </a>
+
+                    <a href="{{ route('admin.staff-performance.index') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.staff-performance.*') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h.01a1 1 0 110 2H12zm-2 2a1 1 0 100-2 1 1 0 000 2zm-4 2a1 1 0 110-2h.01a1 1 0 110 2H6z" clip-rule="evenodd"></path>
+                        </svg>
+                        Hiệu suất Staff
+                    </a>
+                </div>
+
+                <!-- NEW: Giá cả & Khuyến mãi -->
+                <div class="mt-8">
+                    <h3 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Giá cả & Khuyến mãi</h3>
+
+                    <a href="{{ route('admin.pricing.index') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.pricing.*') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.16 5.314l4.897-1.596A1 1 0 0114.59 4.79l1.293 5.413a1 1 0 01-.757 1.222l-4.897 1.596a1 1 0 01-1.222-.757L5.4 6.536a1 1 0 01.757-1.222zM5 12.5a.5.5 0 11-1 0 .5.5 0 011 0zm6 0a.5.5 0 11-1 0 .5.5 0 011 0z"></path>
+                        </svg>
+                        Giá & Khuyến Mãi
+                    </a>
+                </div>
+
+                <!-- NEW: Tài chính -->
+                <div class="mt-8">
+                    <h3 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Tài chính</h3>
+
+                    <a href="{{ route('admin.finance.index') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.finance.index') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                        </svg>
+                        Doanh Thu
+                    </a>
+
+                    <a href="{{ route('admin.finance.reconciliation') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.finance.reconciliation') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-7a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1H9a1 1 0 01-1-1V4zm6-3a1 1 0 011-1h2a1 1 0 011 1v15a1 1 0 01-1 1h-2a1 1 0 01-1-1V1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Đối Soát
+                    </a>
+
+                    <a href="{{ route('admin.finance.expenses') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.finance.expenses') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                        </svg>
+                        Chi Phí
+                    </a>
+                </div>
+
+                <!-- NEW: Cấu hình -->
+                <div class="mt-8">
+                    <h3 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Cấu hình</h3>
+
+                    <a href="{{ route('admin.settings.general') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.settings.general') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                        </svg>
+                        Cài Đặt Chung
+                    </a>
+
+                    <a href="{{ route('admin.settings.shipping') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.settings.shipping') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                            <path fill-rule="evenodd" d="M3 6a1 1 0 000 2h14a1 1 0 100-2H3zm0 4a1 1 0 000 2h14a1 1 0 100-2H3z" clip-rule="evenodd"></path>
+                        </svg>
+                        Vận Chuyển
+                    </a>
+
+                    <a href="{{ route('admin.settings.payment') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.settings.payment') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"></path>
+                        </svg>
+                        Thanh Toán
+                    </a>
+
+                    <a href="{{ route('admin.settings.content') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.settings.content') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2H4a2 2 0 01-2-2V4zm3 1h6v2H7V5zm0 4h6v2H7V9z"></path>
+                        </svg>
+                        Nội Dung
+                    </a>
+                </div>
             </nav>
             
             <div class="absolute bottom-0 w-64 px-4 py-4 border-t border-gray-200">
-                <a href="/" class="flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 mb-2">
-                    <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                    Về trang chủ
-                </a>
-                <a href="https://github.com" target="_blank" class="flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100" title="Admin Guide">
-                    <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1h2v2H7V4zm2 4H7v2h2V8zm2-4h2v2h-2V4zm2 4h-2v2h2V8z" clip-rule="evenodd"></path>
-                    </svg>
-                    Hướng dẫn
-                </a>
+                <form method="POST" action="{{ route('logout') }}" style="display: inline; width: 100%;">
+                    @csrf
+                    <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+                        Đăng Xuất
+                    </button>
+                </form>
             </div>
         </div>
         

@@ -12,6 +12,11 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\VerificationController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\StaffPerformanceController;
+use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\PricingController;
+use App\Http\Controllers\Admin\SettingsController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -154,4 +159,47 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
         ]
     ]);
     Route::patch('categories/{category}/toggle-active', [AdminCategoryController::class, 'toggleActive'])->name('categories.toggleActive');
+    
+    // Users & Staff Management
+    Route::resource('users', UserController::class, [
+        'names' => [
+            'index' => 'users.index',
+            'create' => 'users.create',
+            'store' => 'users.store',
+            'show' => 'users.show',
+            'edit' => 'users.edit',
+            'update' => 'users.update',
+            'destroy' => 'users.destroy',
+        ]
+    ]);
+    Route::patch('users/{id}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggleActive');
+    
+    // Staff Performance & KPIs
+    Route::get('/staff-performance', [StaffPerformanceController::class, 'index'])->name('staff-performance.index');
+    Route::get('/staff-performance/{id}', [StaffPerformanceController::class, 'show'])->name('staff-performance.show');
+    
+    // Finance & Revenue
+    Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
+    Route::get('/finance/reconciliation', [FinanceController::class, 'reconciliation'])->name('finance.reconciliation');
+    Route::get('/finance/expenses', [FinanceController::class, 'expenses'])->name('finance.expenses');
+    
+    // Pricing & Vouchers
+    Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
+    Route::get('/pricing/{id}/edit', [PricingController::class, 'edit'])->name('pricing.edit');
+    Route::patch('/pricing/{id}', [PricingController::class, 'update'])->name('pricing.update');
+    Route::post('/pricing/bulk-update', [PricingController::class, 'bulkUpdate'])->name('pricing.bulkUpdate');
+    
+    // Settings
+    Route::get('/settings/shipping', [SettingsController::class, 'shipping'])->name('settings.shipping');
+    Route::post('/settings/shipping', [SettingsController::class, 'updateShipping'])->name('settings.updateShipping');
+    
+    Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment');
+    Route::post('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.updatePayment');
+    
+    Route::get('/settings/general', [SettingsController::class, 'general'])->name('settings.general');
+    Route::post('/settings/general', [SettingsController::class, 'updateGeneral'])->name('settings.updateGeneral');
+    
+    Route::get('/settings/content', [SettingsController::class, 'content'])->name('settings.content');
+    Route::get('/settings/content/{slug}/edit', [SettingsController::class, 'editContent'])->name('settings.editContent');
+    Route::post('/settings/content/{slug}', [SettingsController::class, 'updateContent'])->name('settings.updateContent');
 });
