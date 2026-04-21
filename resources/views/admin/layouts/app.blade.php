@@ -49,6 +49,13 @@
                 <div class="mt-6">
                     <h3 class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Quản lý</h3>
                     
+                    <a href="{{ route('admin.verifications.index') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.verifications.*') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Xác thực tài khoản
+                    </a>
+                    
                     <a href="{{ route('admin.categories.index') }}" class="flex items-center px-4 py-2 mb-2 text-gray-700 rounded-lg {{ request()->routeIs('admin.categories.*') ? 'bg-gray-200 text-gray-900 font-semibold' : 'hover:bg-gray-100' }}">
                         <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM13 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2z"></path>

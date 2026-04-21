@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\ProductImageController;
+use App\Http\Controllers\Admin\VerificationController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -105,6 +106,13 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'is_staff'])->group(
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.alt');
+    
+    // Staff/Admin Verification Requests
+    Route::get('/verifications', [VerificationController::class, 'index'])->name('verifications.index');
+    Route::get('/verifications/{verification}', [VerificationController::class, 'show'])->name('verifications.show');
+    Route::post('/verifications/{verification}/approve', [VerificationController::class, 'approve'])->name('verifications.approve');
+    Route::post('/verifications/{verification}/reject', [VerificationController::class, 'reject'])->name('verifications.reject');
+    Route::post('/verifications/{verification}/resend-otp', [VerificationController::class, 'resendOtp'])->name('verifications.resend-otp');
     
     // Products Admin
     Route::resource('products', AdminProductController::class, [

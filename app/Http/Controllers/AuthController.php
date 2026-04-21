@@ -265,14 +265,8 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             
-            // Get user and check username pattern to validate role
+            // Get authenticated user - role is already set when account was created
             $user = Auth::user();
-            $expectedRole = $this->determineRoleByUsername($user->username);
-            
-            // Update role if it doesn't match username pattern
-            if ($user->role !== $expectedRole) {
-                $user->update(['role' => $expectedRole]);
-            }
             
             if ($user->isAdmin()) {
                 return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập thành công!');
@@ -506,13 +500,17 @@ class AuthController extends Controller
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if ($user) {
-                // Update existing user with Google ID and token
+                // Update existing user with Google ID and token (keep existing role)
                 $user->update([
                     'google_id' => $googleUser->getId(),
                     'google_token' => $googleUser->token,
+                    'avatar_url' => $googleUser->getAvatar(),
                 ]);
             } else {
-                // Create new user from Google data (always as regular user)
+                // Create new user from Google data
+                // Try to find verification record with this email to determine correct role
+                $verification = EmailVerification::where('email', $googleUser->getEmail())->first();
+                
                 $name = $googleUser->getName();
                 
                 // Generate unique username from Google ID and email
@@ -526,6 +524,20 @@ class AuthController extends Controller
                     $counter++;
                 }
 
+                // Determine role: 
+                // 1. Check if it's admin email
+                // 2. Check verification record
+                // 3. Default to 'user'
+                $role = 'user';
+                
+                // Check if email is admin email
+                if ($googleUser->getEmail() === '21012521@st.phenikaa-uni.edu.vn') {
+                    $role = 'admin';
+                } else if ($verification) {
+                    // Use role from verification record
+                    $role = $this->determineRoleByUsername($verification->username);
+                }
+
                 $user = User::create([
                     'name' => $name,
                     'username' => $username,
@@ -534,21 +546,26 @@ class AuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'google_token' => $googleUser->token,
                     'avatar_url' => $googleUser->getAvatar(), // Save Google avatar
-                    'role' => 'user', // Always 'user' for Gmail login per requirement
+                    'role' => $role, // Use role from verification or default 'user'
                     'is_active' => true,
                     'password_set' => false, // User must set password on first login
                 ]);
 
                 // Create cart for new user
                 Cart::create(['user_id' => $user->id]);
+                
+                // Delete verification record if it exists
+                if ($verification) {
+                    $verification->delete();
+                }
             }
+        } else {
+            // Update google token on each login
+            $user->update([
+                'google_token' => $googleUser->token,
+                'avatar_url' => $googleUser->getAvatar(), // Update avatar on each login
+            ]);
         }
-
-        // Update google token on each login
-        $user->update([
-            'google_token' => $googleUser->token,
-            'avatar_url' => $googleUser->getAvatar(), // Update avatar on each login
-        ]);
 
         // Verify user is active
         if (!$user->is_active) {
@@ -558,6 +575,13 @@ class AuthController extends Controller
         // Login the user
         Auth::login($user, true);
 
-        return redirect()->route('home')->with('success', 'Đăng nhập bằng Google thành công!');
+        // Redirect based on role
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập bằng Google thành công!');
+        } elseif ($user->isStaff()) {
+            return redirect()->route('staff.dashboard')->with('success', 'Đăng nhập bằng Google thành công!');
+        } else {
+            return redirect()->route('home')->with('success', 'Đăng nhập bằng Google thành công!');
+        }
     }
 }

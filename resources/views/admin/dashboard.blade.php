@@ -65,7 +65,21 @@
             </div>
         </div>
     </div>
-</div>
+    
+    <!-- Pending Verifications -->
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-400">
+        <div class="flex items-center">
+            <div class="flex-1">
+                <p class="text-gray-500 text-sm font-medium">Yêu cầu chờ xác thực</p>
+                <p class="text-3xl font-bold text-red-600 mt-1">{{ $pendingVerifications }}</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
 
 <!-- Account Management Card -->
 <div class="bg-white rounded-lg shadow p-6 mb-8">
@@ -79,6 +93,64 @@
         </div>
     </div>
 </div>
+
+<!-- Pending Verifications Section -->
+@if($pendingVerifications > 0)
+<div class="bg-white rounded-lg shadow mb-8 border-l-4 border-red-400">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-red-50">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-900">⚠️ Yêu cầu chờ xác thực</h2>
+            <p class="text-sm text-gray-600">{{ $pendingVerifications }} yêu cầu đăng ký nhân viên đang chờ phê duyệt</p>
+        </div>
+        <a href="{{ route('admin.verifications.index') }}" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+            Xem tất cả →
+        </a>
+    </div>
+    
+    @if($recentVerifications->count() > 0)
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên đăng nhập</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vai trò</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Yêu cầu lúc</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hết hạn</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach($recentVerifications as $verification)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $verification->username }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ $verification->email }}</td>
+                            <td class="px-6 py-4 text-sm">
+                                @if (str_ends_with($verification->username, '.admin'))
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">Admin</span>
+                                @else
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Staff</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">{{ $verification->created_at->format('H:i - d/m/Y') }}</td>
+                            <td class="px-6 py-4 text-sm">
+                                @if ($verification->isExpired())
+                                    <span class="text-red-600 font-medium">Đã hết</span>
+                                @else
+                                    <span class="text-green-600 font-medium">{{ $verification->expires_at->format('H:i') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-center">
+                                <a href="{{ route('admin.verifications.show', $verification) }}" class="text-blue-600 hover:text-blue-900 font-medium">Xem</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</div>
+@endif
 
 <!-- Recent Products -->
 <div class="bg-white rounded-lg shadow">
