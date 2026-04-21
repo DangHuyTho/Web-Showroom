@@ -20,4 +20,12 @@ class Brand extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    /**
+     * Scope to get only active brands
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }

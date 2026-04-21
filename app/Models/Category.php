@@ -33,4 +33,12 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    /**
+     * Scope to get only active categories
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }
