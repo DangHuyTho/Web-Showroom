@@ -43,10 +43,9 @@ class Cart extends Model
      */
     public function getTotal()
     {
-        return $this->items()->with('product')
-                            ->get()
+        return $this->items()->get()
                             ->sum(function ($item) {
-                                return $item->product->price * $item->quantity;
+                                return $item->getSubtotal();
                             });
     }
 

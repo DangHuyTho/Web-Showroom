@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class CartItem extends Model
 {
-    protected $fillable = ['cart_id', 'product_id', 'quantity'];
+    protected $fillable = ['cart_id', 'product_id', 'quantity', 'unit_price'];
 
     protected $casts = [
+        'unit_price' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -30,10 +31,10 @@ class CartItem extends Model
     }
 
     /**
-     * Get item subtotal
+     * Get item subtotal (dùng unit_price đã tính khi thêm vào)
      */
     public function getSubtotal()
     {
-        return $this->product->price * $this->quantity;
+        return $this->unit_price * $this->quantity;
     }
 }

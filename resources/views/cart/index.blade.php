@@ -53,8 +53,8 @@
                                             <input type="number" min="1" value="{{ $item->quantity }}" style="width: 60px; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; text-align: center;" data-item-id="{{ $item->id }}">
                                         </td>
                                         <td style="padding: var(--spacing-md); text-align: right;">
-                                            <span style="font-weight: 600; color: var(--color-text);">{{ number_format($item->product->price * $item->quantity) }}₫</span>
-                                            <p style="color: #6b7280; font-size: 0.85rem; margin: 4px 0 0 0;">{{ number_format($item->product->price) }}₫ x {{ $item->quantity }}</p>
+                                            <span style="font-weight: 600; color: var(--color-text);">{{ number_format($item->getSubtotal()) }}₫</span>
+                                            <p style="color: #6b7280; font-size: 0.85rem; margin: 4px 0 0 0;">{{ number_format($item->unit_price) }}₫ x {{ $item->quantity }}</p>
                                         </td>
                                         <td style="padding: var(--spacing-md); text-align: right;">
                                             <form action="{{ route('cart.remove', $item->id) }}" method="POST" style="display: inline;">

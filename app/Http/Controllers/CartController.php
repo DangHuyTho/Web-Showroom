@@ -44,18 +44,40 @@ class CartController extends Controller
             $cart = Cart::create(['user_id' => Auth::id()]);
         }
 
+        // Calculate unit price based on product type
+        $unitPrice = $product->price; // Default (TOTO sản phẩm)
+        
+        // Nếu là gạch (có kích thước), tính giá/viên dựa trên diện tích 1 viên
+        if ($product->size && $product->brand && $product->brand->slug !== 'toto') {
+            // Parse size format: "60×90" hoặc "60x90" để lấy diện tích mỗi viên (m²)
+            preg_match('/(\d+)\s*[×x]\s*(\d+)/', $product->size, $matches);
+            if ($matches) {
+                $width = intval($matches[1]) / 100; // Convert cm to m
+                $height = intval($matches[2]) / 100;
+                $tileSizeM2 = $width * $height;
+                
+                // unit_price = giá/viên = diện tích 1 viên × đơn giá/m²
+                // (không nhân quantity - quantity sẽ được nhân sau khi lưu)
+                $unitPrice = intval($tileSizeM2 * $product->price);
+            }
+        }
+
         // Check if product already in cart
         $cartItem = $cart->items()->where('product_id', $id)->first();
 
         if ($cartItem) {
-            // Update quantity
-            $cartItem->update(['quantity' => $cartItem->quantity + $quantity]);
+            // Update quantity and unit price (recalculate)
+            $cartItem->update([
+                'quantity' => $cartItem->quantity + $quantity,
+                'unit_price' => $unitPrice
+            ]);
         } else {
             // Add new item
             CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $id,
                 'quantity' => $quantity,
+                'unit_price' => $unitPrice,
             ]);
         }
 
