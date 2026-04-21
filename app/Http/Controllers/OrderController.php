@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Mail\OrderDeliveredMail;
 
 class OrderController extends Controller
 {
@@ -137,8 +139,8 @@ class OrderController extends Controller
             // Clear cart
             $cart->clear();
 
-            return redirect()->route('orders.payment', $payment->id)
-                ->with('success', 'Đặt hàng thành công! Vui lòng tiến hành thanh toán');
+            return redirect()->route('orders.show', $order->id)
+                ->with('success', 'Đặt hàng thành công! Đơn hàng của bạn đang chờ xác nhận. Vui lòng hoàn tất thanh toán.');
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Có lỗi khi tạo đơn hàng. Vui lòng thử lại');
@@ -224,8 +226,8 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Đặt hàng thành công!',
-                'redirect' => route('orders.payment', $payment->id)
+                'message' => 'Đặt hàng thành công! Đơn hàng của bạn đang chờ xác nhận.',
+                'redirect' => route('orders.show', $order->id)
             ]);
 
         } catch (\Exception $e) {
@@ -342,13 +344,43 @@ class OrderController extends Controller
             return abort(403, 'Unauthorized');
         }
 
-        // Can only cancel pending or confirmed orders
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
-            return redirect()->back()->with('error', 'Không thể hủy đơn hàng ở trạng thái này');
+        // Can only cancel pending, confirmed, processing orders (not packed, shipped, delivered, cancelled)
+        if (!in_array($order->status, ['pending', 'confirmed', 'processing'])) {
+            return redirect()->back()->with('error', 'Không thể hủy đơn hàng ở trạng thái này. Đơn hàng đã được đóng gói hoặc đang vận chuyển.');
         }
 
         $order->cancel();
 
         return redirect()->back()->with('success', 'Đơn hàng đã được hủy');
+    }
+
+    /**
+     * Mark order as received by customer
+     */
+    public function received($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::findOrFail($id);
+
+        // Check authorization
+        if ($order->user_id !== Auth::id()) {
+            return abort(403, 'Unauthorized');
+        }
+
+        // Can only mark as received when shipped
+        if ($order->status !== 'shipped') {
+            return redirect()->back()->with('error', 'Chỉ có thể xác nhận nhận hàng khi đơn đang giao');
+        }
+
+        // Update order status
+        $order->update([
+            'status' => 'delivered',
+            'delivered_at' => now()
+        ]);
+
+        return redirect()->back()->with('success', 'Cảm ơn bạn đã xác nhận nhận hàng. Vui lòng để lại đánh giá về sản phẩm.');
     }
 }

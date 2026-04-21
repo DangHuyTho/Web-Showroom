@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/payment/{paymentId}', [\App\Http\Controllers\OrderController::class, 'payment'])->name('orders.payment');
     Route::post('/payment/{paymentId}/process', [\App\Http\Controllers\OrderController::class, 'processPayment'])->name('orders.processPayment');
     Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{id}/received', [\App\Http\Controllers\OrderController::class, 'received'])->name('orders.received');
 });
 
 // Staff Routes

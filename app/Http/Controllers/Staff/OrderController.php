@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\InventoryLog;
+use App\Mail\OrderConfirmedMail;
+use App\Mail\OrderShippedMail;
+use App\Mail\OrderDeliveredMail;
 
 class OrderController extends Controller
 {
@@ -84,6 +88,9 @@ class OrderController extends Controller
             'status' => 'confirmed'
         ]);
 
+        // Send email to customer
+        Mail::to($order->user->email)->queue(new OrderConfirmedMail($order));
+
         return redirect()->back()->with('success', 'Đơn hàng đã được xác nhận và tồn kho đã được trừ');
     }
 
@@ -152,6 +159,9 @@ class OrderController extends Controller
             'shipped_at' => now(),
         ]);
 
+        // Send email to customer
+        Mail::to($order->user->email)->queue(new OrderShippedMail($order));
+
         return redirect()->back()->with('success', 'Đơn hàng đã được bàn giao cho đơn vị vận chuyển');
     }
 
@@ -170,6 +180,9 @@ class OrderController extends Controller
             'status' => 'delivered',
             'delivered_at' => now(),
         ]);
+
+        // Send email to customer
+        Mail::to($order->user->email)->queue(new OrderDeliveredMail($order));
 
         return redirect()->back()->with('success', 'Đơn hàng đã hoàn thành');
     }
