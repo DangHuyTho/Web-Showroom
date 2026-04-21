@@ -31,6 +31,9 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+Route::get('/verify-otp', [AuthController::class, 'showVerifyOtpForm'])->name('auth.verify-otp-form');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('auth.verify-otp');
+Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('auth.resend-otp');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Forgot Password Routes

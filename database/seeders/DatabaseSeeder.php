@@ -19,9 +19,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             BrandSeeder::class,
             CategorySeeder::class,
-            ProductSeeder::class,
-            TotoProductSeeder::class,
-            InspirationPostSeeder::class,
+            ProductFromImagesSeeder::class,
+            // InspirationPostSeeder::class,
         ]);
     }
 }

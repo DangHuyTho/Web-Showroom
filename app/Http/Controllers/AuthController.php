@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Cart;
+use App\Models\EmailVerification;
+use App\Mail\VerifyEmailOTP;
+use App\Mail\VerifyEmailOTPAdmin;
 use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -49,14 +52,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle registration
+     * Handle registration - Generate OTP and send email
      */
     public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|unique:users,username|max:255|min:3',
-            'email' => 'required|string|email|unique:users,email|max:255',
+            'email' => 'required|string|email|unique:users,email|unique:email_verifications,email|max:255',
             'password' => 'required|string|min:6|confirmed',
         ], [
             'name.required' => 'Vui lòng nhập tên',
@@ -71,27 +74,183 @@ class AuthController extends Controller
             'password.confirmed' => 'Xác nhận mật khẩu không trùng khớp',
         ]);
 
-        // Determine role based on username pattern
-        $role = $this->determineRoleByUsername($validated['username']);
+        // Generate OTP (6 digits)
+        $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Delete old verification records for this email
+        EmailVerification::where('email', $validated['email'])->delete();
+
+        // Check if username requires admin verification (staff or admin role)
+        $isAdminVerification = str_ends_with($validated['username'], '.staff') || 
+                               str_ends_with($validated['username'], '.admin');
+        
+        $requestedRole = $this->determineRoleByUsername($validated['username']);
+
+        // Create email verification record
+        EmailVerification::create([
+            'email' => $validated['email'],
+            'otp' => $otp,
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'password_hash' => Hash::make($validated['password']),
+            'attempts' => 0,
+            'is_admin_verification' => $isAdminVerification,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        // Send OTP email to admin or user
+        try {
+            if ($isAdminVerification) {
+                // Send to admin for staff/admin account verification
+                Mail::send(new VerifyEmailOTPAdmin(
+                    $otp, 
+                    $validated['email'], 
+                    $validated['name'], 
+                    $validated['username'],
+                    $requestedRole
+                ));
+            } else {
+                // Send to user for regular account verification
+                Mail::send(new VerifyEmailOTP($otp, $validated['name'], $validated['email']));
+            }
+        } catch (\Exception $e) {
+            // Log error but don't stop the process
+            \Log::error('Failed to send verification email: ' . $e->getMessage());
+        }
+
+        return redirect()->route('auth.verify-otp-form')
+            ->with('email', $validated['email'])
+            ->with('is_admin_verification', $isAdminVerification)
+            ->with('success', $isAdminVerification ? 'Yêu cầu đăng ký đã được gửi tới quản trị viên. Vui lòng chờ xác thực.' : 'Mã xác thực đã được gửi đến email của bạn. Vui lòng kiểm tra inbox hoặc spam folder.');
+    }
+
+    /**
+     * Show verify OTP form
+     */
+    public function showVerifyOtpForm(Request $request)
+    {
+        $email = $request->session()->get('email');
+        $isAdminVerification = $request->session()->get('is_admin_verification', false);
+        if (!$email) {
+            return redirect()->route('auth.login');
+        }
+        return view('auth.verify-otp', compact('email', 'isAdminVerification'));
+    }
+
+    /**
+     * Verify OTP and create user
+     */
+    public function verifyOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string|size:6',
+        ], [
+            'email.required' => 'Email không hợp lệ',
+            'otp.required' => 'Vui lòng nhập mã xác thực',
+            'otp.size' => 'Mã xác thực phải là 6 chữ số',
+        ]);
+
+        // Find verification record
+        $verification = EmailVerification::where('email', $validated['email'])->first();
+
+        if (!$verification) {
+            return back()->with('error', 'Email không tìm thấy. Vui lòng đăng ký lại.')->withInput();
+        }
+
+        // Check if expired
+        if ($verification->isExpired()) {
+            $verification->delete();
+            return back()->with('error', 'Mã xác thực đã hết hạn. Vui lòng đăng ký lại.')->withInput();
+        }
+
+        // Check max attempts
+        if ($verification->isMaxAttempts()) {
+            $verification->delete();
+            return back()->with('error', 'Bạn đã nhập sai quá nhiều lần. Vui lòng đăng ký lại.')->withInput();
+        }
+
+        // Check OTP
+        if ($verification->otp !== $validated['otp']) {
+            $verification->increment('attempts');
+            $remaining = 5 - $verification->attempts;
+            return back()->with('error', "Mã xác thực không chính xác. Còn $remaining lần thử.")->withInput();
+        }
 
         // Create user
         $user = User::create([
-            'name' => $validated['name'],
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $role,
+            'name' => $verification->name,
+            'username' => $verification->username,
+            'email' => $verification->email,
+            'password' => $verification->password_hash,
+            'role' => $this->determineRoleByUsername($verification->username),
             'is_active' => true,
+            'password_set' => true,
         ]);
 
         // Create cart for user
         Cart::create(['user_id' => $user->id]);
 
-        // Auto-login after registration
+        // Delete verification record
+        $verification->delete();
+
+        // Auto-login
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('success', 'Đăng ký thành công! Chào mừng bạn!');
+        $successMessage = $verification->is_admin_verification 
+            ? 'Tài khoản nhân viên đã được xác thực thành công!'
+            : 'Đăng ký thành công! Chào mừng bạn đến với Showroom Hộ Nhân!';
+
+        return redirect()->route('home')->with('success', $successMessage);
+    }
+
+    /**
+     * Resend OTP
+     */
+    public function resendOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $verification = EmailVerification::where('email', $validated['email'])->first();
+
+        if (!$verification) {
+            return back()->with('error', 'Email không tìm thấy.')->withInput();
+        }
+
+        // Generate new OTP
+        $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Update verification record
+        $verification->update([
+            'otp' => $otp,
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        // Send OTP email
+        try {
+            if ($verification->is_admin_verification) {
+                // Send to admin for staff/admin account verification
+                $requestedRole = $this->determineRoleByUsername($verification->username);
+                Mail::send(new VerifyEmailOTPAdmin(
+                    $otp, 
+                    $verification->email, 
+                    $verification->name, 
+                    $verification->username,
+                    $requestedRole
+                ));
+            } else {
+                // Send to user for regular account verification
+                Mail::send(new VerifyEmailOTP($otp, $verification->name, $verification->email));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send verification email: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Mã xác thực mới đã được gửi.');
     }
     /**
      * Handle login

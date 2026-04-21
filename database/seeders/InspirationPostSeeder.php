@@ -13,17 +13,69 @@ class InspirationPostSeeder extends Seeder
         $posts = [
             [
                 'title' => 'Biệt Thự Hiện Đại với Gạch Royal 80x80',
-                'slug' => 'biet-thu-hien-dai-voi-gach-royal',
+                'slug' => 'biet-thu-hien-dai-voi-gach-royal-80x80',
                 'post_type' => 'project',
                 'excerpt' => 'Công trình biệt thự hiện đại sử dụng gạch Royal Marble 80x80 cho không gian sang trọng',
-                'content' => 'Công trình biệt thự tại quận 2 với diện tích 500m² sử dụng gạch Royal Marble 80x80 cho phòng khách và phòng ăn. Thiết kế tối giản nhưng sang trọng, tạo không gian rộng rãi và hiện đại.',
+                'featured_image' => 'biet-thu-hien-dai-voi-gach-royal.png',
+                'content' => '<h2>Biệt Thự Hiện Đại với Gạch Royal 80x80</h2>
+
+<p>Công trình biệt thự tại quận 2 với diện tích 500m² sử dụng gạch Royal Marble 80x80 cho phòng khách và phòng ăn. Thiết kế tối giản nhưng sang trọng, tạo không gian rộng rãi và hiện đại.</p>
+
+<h3>Thông Tin Chi Tiết Công Trình</h3>
+
+<ul>
+<li><strong>Diện tích:</strong> 500m²</li>
+<li><strong>Vị trí:</strong> Quận 2, TP.HCM</li>
+<li><strong>Thời gian thực hiện:</strong> 3 tháng</li>
+<li><strong>Chủ đầu tư:</strong> Anh Nguyễn Văn A</li>
+</ul>
+
+<h3>Đặc Điểm Thiết Kế</h3>
+
+<p>Công trình sử dụng gạch Royal Marble kích thước 80x80cm với texture bề mặt polished cao cấp. Màu sắc trắng kem kết hợp với chân sàn gỗ tự nhiên tạo nên sự ấm áp và hiện đại cho toàn bộ không gian.</p>
+
+<p>Phòng khách được thiết kế với trần cao 4m, tạo cảm giác rộng rãi. Sàn gạch Royal 80x80 được lát nối với phòng ăn liền kề, tạo sự thống nhất và chảy chảy không gian.</p>
+
+<h3>Kết Quả Thực Hiện</h3>
+
+<p>Sau 3 tháng hoàn thành, công trình đã nhận được sự hài lòng cao từ chủ đầu tư. Không gian sống trở nên sang trọng, hiện đại và vô cùng thoải mái với gạch Royal Marble 80x80.</p>',
                 'project_location' => 'Quận 2, TP.HCM',
                 'project_date' => now()->subMonths(3),
                 'is_featured' => true,
+                'sort_order' => 1,
+            ],
+            [
+                'title' => 'Phòng Tắm Sang Trọng với Thiết Bị Toto',
+                'slug' => 'phong-tam-sang-trong-voi-thiet-bi-toto-neorest',
+                'post_type' => 'project',
+                'excerpt' => 'Thiết kế phòng tắm cao cấp với bồn cầu thông minh Toto Neorest AH',
+                'featured_image' => 'phong-tam-sang-trong-voi-thiet-bi-toto.png',
+                'content' => '<h2>Phòng Tắm Sang Trọng với Thiết Bị Toto</h2>
+
+<p>Phòng tắm được thiết kế với bồn cầu thông minh Toto Neorest AH, chậu rửa lavabo Toto và sen tắm cao cấp. Không gian sang trọng, hiện đại với công nghệ Nhật Bản.</p>
+
+<h3>Các Sản Phẩm Toto Sử Dụng</h3>
+
+<ul>
+<li><strong>Bồn Cầu:</strong> Toto Neorest AH với công nghệ tự động rửa, sấy</li>
+<li><strong>Chậu Rửa Lavabo:</strong> Toto Nexus với thiết kế tinh tế</li>
+<li><strong>Vòi Nước:</strong> Toto tiêu chuẩn đứng cao cấp</li>
+<li><strong>Sen Tắm:</strong> Toto Rain Shower với công nghệ tiết kiệm nước</li>
+</ul>
+
+<h3>Đặc Điểm Nổi Bật</h3>
+
+<p>Phòng tắm sử dụng gạch Viglacera 30x60cm với màu trắng tinh khôi, kết hợp với các thiết bị vệ sinh Toto cao cấp. Hệ thống thông gió hiện đại đảm bảo không gian luôn khô ráo và sạch sẽ.</p>
+
+<p>Bồn cầu Toto Neorest AH với chức năng tự động rửa, sấy, khử mùi và tự động mở/đóng nắp tạo nên sự tiện nghi tối đa cho người dùng.</p>',
+                'project_location' => 'Quận 7, TP.HCM',
+                'project_date' => now()->subMonths(2),
+                'is_featured' => true,
+                'sort_order' => 2,
             ],
             [
                 'title' => 'Cách Chọn Màu Ngói Fuji Hợp Mệnh',
-                'slug' => 'cach-chon-mau-ngoi-fuji-hop-menh',
+                'slug' => 'cach-chon-mau-ngoi-fuji-hop-menh-phong-thuy',
                 'post_type' => 'blog',
                 'excerpt' => 'Hướng dẫn chọn màu ngói Fuji phù hợp với phong thủy và mệnh của gia chủ',
                 'featured_image' => 'phong-thuy-ngoi-1024x724.png',
@@ -74,16 +126,46 @@ class InspirationPostSeeder extends Seeder
 <p>Chọn màu ngói trong giai đoạn xây dựng hoàn thiện ngôi nhà cũng quan trọng như khâu chọn màu cho nội ngoại thất. Hiện nay dòng ngói màu Fuji đã trở nên rất thông dụng có nhiều mẫu màu đa dạng hơn nhằm đáp ứng nhu cầu, sở thích của gia chủ.</p>
 
 <p>Chúc các bạn chọn ngói màu Fuji hợp tuổi với màu sắc phù hợp cho ngôi nhà của mình nhé!</p>',
+                'is_featured' => true,
+                'sort_order' => 3,
             ],
             [
-                'title' => 'Phòng Tắm Sang Trọng với Thiết Bị Toto',
-                'slug' => 'phong-tam-sang-trong-voi-thiet-bi-toto',
+                'title' => 'Nhà Phố Viglacera với Thiết Kế Tối Giản',
+                'slug' => 'nha-pho-viglacera-thiet-ke-toi-gian',
                 'post_type' => 'project',
-                'excerpt' => 'Thiết kế phòng tắm cao cấp với bồn cầu thông minh Toto Neorest',
-                'content' => 'Phòng tắm được thiết kế với bồn cầu thông minh Toto Neorest AH, chậu rửa lavabo Toto và sen tắm cao cấp. Không gian sang trọng, hiện đại với công nghệ Nhật Bản.',
-                'project_location' => 'Quận 7, TP.HCM',
-                'project_date' => now()->subMonths(2),
+                'excerpt' => 'Thiết kế nhà phố hiện đại sử dụng gạch Viglacera 30x60cm với tông màu xám nhạt',
+                'featured_image' => 'nha-pho-viglacera-voi-thiet-ke-toi-gian.png',
+                'content' => '<h2>Nhà Phố Viglacera với Thiết Kế Tối Giản</h2>
+
+<p>Công trình nhà phố kết hợp gạch Viglacera kích thước 30x60cm với màu xám nhạt, tạo nên không gian hiện đại, tối giản nhưng đầy tinh tế.</p>
+
+<h3>Thông Tin Công Trình</h3>
+
+<ul>
+<li><strong>Diện tích xây dựng:</strong> 120m²</li>
+<li><strong>Số tầng:</strong> 4 tầng</li>
+<li><strong>Vị trí:</strong> Thủ Đức, TP.HCM</li>
+<li><strong>Thời gian hoàn thành:</strong> 4 tháng</li>
+</ul>
+
+<h3>Vật Liệu Sử Dụng</h3>
+
+<ul>
+<li>Gạch Viglacera 30x60cm màu xám - cho sàn</li>
+<li>Gạch Viglacera 30x60cm màu trắng - cho tường</li>
+<li>Sơn nội thất cao cấp</li>
+<li>Kính cường lực cho cửa sổ</li>
+</ul>
+
+<h3>Đặc Điểm Thiết Kế</h3>
+
+<p>Nhà phố được thiết kế với phong cách tối giản nhưng không kém phần sang trọng. Sử dụng gạch Viglacera 30x60 xám nhạt cho sàn phòng khách, phòng bếp tạo sự thống nhất và hiện đại.</p>
+
+<p>Không gian mở giữa phòng khách và phòng bếp tạo cảm giác rộng rãi, thông thoáng. Cầu thang được thiết kế với bậc bê tông bao phủ gạch Viglacera, vừa an toàn vừa thẩm mỹ.</p>',
+                'project_location' => 'Thủ Đức, TP.HCM',
+                'project_date' => now()->subMonths(1),
                 'is_featured' => true,
+                'sort_order' => 4,
             ],
         ];
 
