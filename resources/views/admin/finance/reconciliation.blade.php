@@ -92,6 +92,7 @@
                     <td class="px-6 py-4 text-sm">
                         @php
                             $paymentMethod = $order->payment->payment_method ?? 'N/A';
+                            $paymentStatus = $order->payment->status ?? 'pending';
                             $methodLabel = [
                                 'credit_card' => 'Thẻ Tín Dụng',
                                 'direct_payment' => 'Thanh Toán Trực Tiếp (COD)',
@@ -104,16 +105,16 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold
-                            {{ $order->payment->status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                            {{ $order->payment->status === 'completed' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán' }}
+                        @php $isCompleted = $paymentStatus === 'completed'; @endphp
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                            {{ $isCompleted ? 'Đã Thanh Toán' : 'Chờ Thanh Toán' }}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-600">
                         {{ $order->delivered_at ? $order->delivered_at->format('d/m/Y H:i') : '—' }}
                     </td>
                     <td class="px-6 py-4 text-sm">
-                        <a href="{{ route('admin.orders.show', $order->id) }}" class="text-blue-600 hover:underline">
+                        <a href="{{ route('orders.show', $order->id) }}" class="text-blue-600 hover:underline">
                             Xem Chi Tiết
                         </a>
                     </td>
