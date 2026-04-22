@@ -15,14 +15,8 @@
         </div>
 
         <!-- Form -->
-        @if($post ?? null)
-        <form method="POST" action="{{ route('admin.inspiration-posts.update', $post) }}" enctype="multipart/form-data" class="space-y-8">
-        @else
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <p class="text-red-800">⚠️ Lỗi: Không tìm thấy bài viết</p>
-        </div>
-        <form method="POST" action="#" enctype="multipart/form-data" class="space-y-8" style="opacity: 0.5; pointer-events: none;">
-        @endif
+        @if($post)
+        <form method="POST" action="{{ route('admin.inspiration-posts.update', ['inspiration_post' => $post->id]) }}" enctype="multipart/form-data" class="space-y-8">
             @csrf
             @method('PUT')
 
@@ -179,6 +173,15 @@
                 </a>
             </div>
         </form>
+        @else
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
+            <p class="text-red-800">⚠️ Lỗi: Không tìm thấy bài viết</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ route('admin.inspiration-posts.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                Quay lại danh sách
+            </a>
+        </div>
         @endif
     </div>
 </div>

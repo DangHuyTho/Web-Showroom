@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Exports\ReconciliationExport;
+use App\Exports\ExpensesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class FinanceController extends Controller
 {
@@ -140,6 +143,55 @@ class FinanceController extends Controller
     }
 
     /**
+     * Export reconciliation data to Excel
+     */
+    public function exportReconciliation(Request $request)
+    {
+        $status = $request->get('status', 'pending');
+
+        $query = Order::with('user', 'payment')
+            ->where('status', 'delivered');
+
+        if ($status === 'confirmed') {
+            $query->whereHas('payment', function ($q) {
+                $q->where('status', 'completed');
+            });
+        }
+
+        $orders = $query->get();
+
+        // Summary
+        $totalCOD = Order::where('status', 'delivered')
+            ->whereHas('payment', function ($q) {
+                $q->where('payment_method', 'direct_payment')
+                  ->where('status', 'completed');
+            })
+            ->sum('total_amount');
+
+        $pendingCOD = Order::where('status', 'delivered')
+            ->whereHas('payment', function ($q) {
+                $q->where('payment_method', 'direct_payment')
+                  ->where('status', 'pending');
+            })
+            ->sum('total_amount');
+
+        $export = new ReconciliationExport($orders, $totalCOD, $pendingCOD);
+        $spreadsheet = $export->export();
+
+        $fileName = 'Doi-soat-thanh-toan-' . now()->format('d-m-Y_H-i-s') . '.xlsx';
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $excelOutput = ob_get_clean();
+
+        return response($excelOutput, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
+
+    /**
      * Show expenses/costs
      */
     public function expenses(Request $request)
@@ -168,4 +220,48 @@ class FinanceController extends Controller
             'month'
         ));
     }
+
+    /**
+     * Export expenses to Excel
+     */
+    public function exportExpenses(Request $request)
+    {
+        $period = $request->get('period', 'month');
+        $year = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
+
+        // Generate period label
+        if ($period === 'month') {
+            $periodLabel = "Tháng " . str_pad($month, 2, '0', STR_PAD_LEFT) . "/" . $year;
+        } else {
+            $periodLabel = "Năm " . $year;
+        }
+
+        // Get expenses data (from placeholder data)
+        $expenses = collect([
+            ['category' => 'Nhập hàng', 'amount' => 50000000, 'description' => 'Chi phí mua hàng từ nhà cung cấp'],
+            ['category' => 'Phí sàn thương mại', 'amount' => 5000000, 'description' => 'Phí hàng tháng cho nền tảng'],
+            ['category' => 'Phí vận chuyển', 'amount' => 8000000, 'description' => 'Chi phí giao hàng cho khách'],
+            ['category' => 'Chi phí nhân viên', 'amount' => 20000000, 'description' => 'Lương và phúc lợi nhân viên'],
+            ['category' => 'Tiện ích (điện, nước)', 'amount' => 3000000, 'description' => 'Chi phí hoạt động văn phòng'],
+        ]);
+
+        $totalExpenses = $expenses->sum('amount');
+
+        $export = new ExpensesExport($expenses, $totalExpenses, $period, $periodLabel);
+        $spreadsheet = $export->export();
+
+        $fileName = 'Chi-phi-van-hanh-' . now()->format('d-m-Y_H-i-s') . '.xlsx';
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+        $excelOutput = ob_get_clean();
+
+        return response($excelOutput, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ]);
+    }
 }
+

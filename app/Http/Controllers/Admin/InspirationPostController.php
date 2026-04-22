@@ -101,16 +101,17 @@ class InspirationPostController extends Controller
     /**
      * Show inspiration post
      */
-    public function show(InspirationPost $post)
+    public function show(InspirationPost $inspiration_post)
     {
-        return view('admin.inspiration-posts.show', compact('post'));
+        return view('admin.inspiration-posts.show', compact('inspiration_post'));
     }
 
     /**
      * Show edit form
      */
-    public function edit(InspirationPost $post)
+    public function edit(InspirationPost $inspiration_post)
     {
+        $post = $inspiration_post;
         $products = Product::where('is_active', true)->orderBy('name')->get();
         $types = ['inspiration', 'case-study', 'blog', 'project'];
 
@@ -120,7 +121,7 @@ class InspirationPostController extends Controller
     /**
      * Update inspiration post
      */
-    public function update(Request $request, InspirationPost $post)
+    public function update(Request $request, InspirationPost $inspiration_post)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -140,39 +141,39 @@ class InspirationPostController extends Controller
         // Handle image upload
         if ($request->hasFile('featured_image')) {
             // Delete old image if exists
-            if ($post->featured_image && file_exists(storage_path('app/public/' . $post->featured_image))) {
-                unlink(storage_path('app/public/' . $post->featured_image));
+            if ($inspiration_post->featured_image && file_exists(storage_path('app/public/' . $inspiration_post->featured_image))) {
+                unlink(storage_path('app/public/' . $inspiration_post->featured_image));
             }
             $path = $request->file('featured_image')->store('inspiration-posts', 'public');
             $validated['featured_image'] = $path;
         }
 
         // Update slug if title changed
-        if ($validated['title'] !== $post->title) {
+        if ($validated['title'] !== $inspiration_post->title) {
             $validated['slug'] = Str::slug($validated['title']);
-            $count = InspirationPost::where('slug', $validated['slug'])->where('id', '!=', $post->id)->count();
+            $count = InspirationPost::where('slug', $validated['slug'])->where('id', '!=', $inspiration_post->id)->count();
             if ($count > 0) {
                 $validated['slug'] = $validated['slug'] . '-' . time();
             }
         }
 
-        $post->update($validated);
+        $inspiration_post->update($validated);
 
-        return redirect()->route('admin.inspiration-posts.show', $post->id)
+        return redirect()->route('admin.inspiration-posts.show', $inspiration_post->id)
                         ->with('success', 'Bài viết cảm hứng đã được cập nhật thành công!');
     }
 
     /**
      * Delete inspiration post
      */
-    public function destroy(InspirationPost $post)
+    public function destroy(InspirationPost $inspiration_post)
     {
         // Delete image if exists
-        if ($post->featured_image && file_exists(storage_path('app/public/' . $post->featured_image))) {
-            unlink(storage_path('app/public/' . $post->featured_image));
+        if ($inspiration_post->featured_image && file_exists(storage_path('app/public/' . $inspiration_post->featured_image))) {
+            unlink(storage_path('app/public/' . $inspiration_post->featured_image));
         }
 
-        $post->delete();
+        $inspiration_post->delete();
 
         return redirect()->route('admin.inspiration-posts.index')
                         ->with('success', 'Bài viết cảm hứng đã được xóa thành công!');
@@ -181,9 +182,9 @@ class InspirationPostController extends Controller
     /**
      * Toggle active status
      */
-    public function toggleActive(InspirationPost $post)
+    public function toggleActive(InspirationPost $inspiration_post)
     {
-        $post->update(['is_active' => !$post->is_active]);
+        $inspiration_post->update(['is_active' => !$inspiration_post->is_active]);
 
         return redirect()->back()->with('success', 'Trạng thái đã được cập nhật!');
     }
@@ -191,9 +192,9 @@ class InspirationPostController extends Controller
     /**
      * Toggle featured status
      */
-    public function toggleFeatured(InspirationPost $post)
+    public function toggleFeatured(InspirationPost $inspiration_post)
     {
-        $post->update(['is_featured' => !$post->is_featured]);
+        $inspiration_post->update(['is_featured' => !$inspiration_post->is_featured]);
 
         return redirect()->back()->with('success', 'Trạng thái nổi bật đã được cập nhật!');
     }

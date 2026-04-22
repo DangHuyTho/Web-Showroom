@@ -141,9 +141,9 @@
             <button onclick="window.print()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                 📄 In Báo Cáo
             </button>
-            <button onclick="alert('Tính năng xuất Excel sẽ sớm được cập nhật')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <a href="{{ route('admin.finance.reconciliation.export', ['status' => request('status', 'pending')]) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">
                 📊 Xuất Excel
-            </button>
+            </a>
         </div>
     </div>
 </div>

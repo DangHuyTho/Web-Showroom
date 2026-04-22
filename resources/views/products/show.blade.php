@@ -6,6 +6,13 @@
 <section class="section">
     <div class="container" style="max-width: 1200px;">
 
+        <!-- Back Button -->
+        <button onclick="history.back()" style="display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); padding: 0; width: auto; height: auto; background: transparent; color: #9ca3af; border: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.color='#6b7280'" onmouseout="this.style.color='#9ca3af'" title="Quay lại">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+        </button>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
             <!-- Product Images -->
             <div>

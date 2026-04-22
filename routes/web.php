@@ -182,7 +182,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
     // Finance & Revenue
     Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
     Route::get('/finance/reconciliation', [FinanceController::class, 'reconciliation'])->name('finance.reconciliation');
+    Route::get('/finance/reconciliation/export', [FinanceController::class, 'exportReconciliation'])->name('finance.reconciliation.export');
     Route::get('/finance/expenses', [FinanceController::class, 'expenses'])->name('finance.expenses');
+    Route::get('/finance/expenses/export', [FinanceController::class, 'exportExpenses'])->name('finance.expenses.export');
     
     // Pricing & Vouchers
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing.index');
@@ -206,7 +208,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
     
     // Inspiration Posts
     Route::resource('inspiration-posts', InspirationPostController::class, [
-        'parameters' => ['inspiration-post' => 'post'],
+        'parameters' => ['inspiration_post' => 'inspiration_post'],
         'names' => [
             'index' => 'inspiration-posts.index',
             'create' => 'inspiration-posts.create',
@@ -217,6 +219,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
             'destroy' => 'inspiration-posts.destroy',
         ]
     ]);
-    Route::patch('inspiration-posts/{post}/toggle-active', [InspirationPostController::class, 'toggleActive'])->name('inspiration-posts.toggleActive');
-    Route::patch('inspiration-posts/{post}/toggle-featured', [InspirationPostController::class, 'toggleFeatured'])->name('inspiration-posts.toggleFeatured');
+    Route::patch('inspiration-posts/{inspiration_post}/toggle-active', [InspirationPostController::class, 'toggleActive'])->name('inspiration-posts.toggleActive');
+    Route::patch('inspiration-posts/{inspiration_post}/toggle-featured', [InspirationPostController::class, 'toggleFeatured'])->name('inspiration-posts.toggleFeatured');
 });
