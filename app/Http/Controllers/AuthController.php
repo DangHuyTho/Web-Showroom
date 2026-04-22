@@ -364,8 +364,8 @@ class AuthController extends Controller
         );
 
         // Send email with token
-        $email = '21012521@st.phenikaa-uni.edu.vn';
-        $mailSubject = 'Mã xác nhận đặt lại mật khẩu - Admin Showroom';
+        $email = $user->email;
+        $mailSubject = 'Mã xác nhận đặt lại mật khẩu - Showroom Hộ Nhân';
         $mailMessage = "Mã xác nhận đặt lại mật khẩu: {$token}\n\nHãy nhập mã này để tiến hành đặt lại mật khẩu của bạn.\n\nMã này sẽ hết hạn sau 24 giờ.";
         
         try {
