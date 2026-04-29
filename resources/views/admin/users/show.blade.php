@@ -7,9 +7,6 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold">{{ $user->name }}</h1>
         <div class="flex gap-2">
-            <a href="{{ route('admin.users.edit', $user->id) }}" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700">
-                Sửa
-            </a>
             <a href="{{ route('admin.users.index') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
                 Quay lại
             </a>
